@@ -1,5 +1,6 @@
 package me.tellvivk.smileme.app.model
 
+import android.graphics.Bitmap
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
@@ -19,5 +20,7 @@ data class Image(
     val title: String? = "",
 
     @Expose
-    val publishedAt: String? = ""
+    val publishedAt: String? = "",
+
+    val bitmap: Bitmap? = null
 )

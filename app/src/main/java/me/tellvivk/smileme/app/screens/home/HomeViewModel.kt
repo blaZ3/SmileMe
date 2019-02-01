@@ -22,11 +22,9 @@ class HomeViewModel(private val imagesRepo: ImageRepositoryI): BaseViewModel() {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess {
-
                 (model as HomeStateModel).apply {
                     updateModel(this.copy(images = it))
                 }
-
             }.subscribe()
     }
 
