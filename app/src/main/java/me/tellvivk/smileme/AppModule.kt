@@ -3,6 +3,7 @@ package me.tellvivk.smileme
 import me.tellvivk.smileme.app.model.ImageRepository
 import me.tellvivk.smileme.app.model.ImageRepositoryI
 import me.tellvivk.smileme.app.screens.home.HomeViewModel
+import me.tellvivk.smileme.dataSources.DummyImageDataSource
 import me.tellvivk.smileme.dataSources.FileImageDataSource
 import me.tellvivk.smileme.dataSources.ImageDataSourceI
 import me.tellvivk.smileme.dataSources.NetworkImageDataSource
@@ -37,17 +38,19 @@ class AppModule {
 
             single<ImageDataSourceI>("network") { NetworkImageDataSource(retrofit = get()) }
             single<ImageDataSourceI>("file") { FileImageDataSource(androidContext()) }
+            single<ImageDataSourceI>("dummy") { DummyImageDataSource() }
 
-            single<ImageRepositoryI> { ImageRepository(networkDataSource = get()) }
+            single<ImageRepositoryI> { ImageRepository(networkDataSource = get("network")) }
 
         }
 
         private val homeModule = module {
-            viewModel { HomeViewModel(imagesRepo = get()) }
+            viewModel { HomeViewModel(imagesRepo = get(), stringFetcher = get()) }
         }
 
         val modules = listOf(
-            appModule
+            appModule,
+            homeModule
         )
     }
 

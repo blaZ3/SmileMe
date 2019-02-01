@@ -9,6 +9,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.layout_item_image.view.*
 import me.tellvivk.smileme.R
 import me.tellvivk.smileme.app.model.Image
+import java.util.*
 
 class HomeImagesAdapter(
     var items: List<Image>,
@@ -16,14 +17,22 @@ class HomeImagesAdapter(
     private val imageInterface: HomeImagesAdapterInterface
 ) : RecyclerView.Adapter<HomeImagesAdapter.HomeImagesViewHolder>() {
 
-    class HomeImagesViewHolder(private val view: View, private val adapterInterface: HomeImagesAdapterInterface) :
+    class HomeImagesViewHolder(private val view: View,
+                               private val adapterInterface: HomeImagesAdapterInterface) :
         RecyclerView.ViewHolder(view) {
         fun onBind(item: Image) {
+
+            view.txtListImageTitle.text = item.title
+
             if (item.bitmap != null){
                 view.imgListImage.setImageBitmap(item.bitmap)
             }else {
                 item.imgUrl?.let {
-                    Picasso.get().load(it).into(view.imgListImage)
+                    val url = "$it&cacheBust=${UUID.randomUUID().hashCode()}"
+                    Picasso.get()
+                        .load(url)
+                        .placeholder(R.drawable.place_holder)
+                        .into(view.imgListImage)
                 }
             }
             view.setOnClickListener { adapterInterface.onImageClicked(item) }

@@ -4,6 +4,7 @@
           package="me.tellvivk.smileme">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
             android:name=".MainApplication"
@@ -14,8 +15,7 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".app.screens.home.detail.FullScreenActivity">
-        </activity>
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -24,6 +24,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".app.screens.home.HomeActivity"/>
+        <activity android:name=".app.screens.fullScreen.FullScreenActivity"/>
     </application>
 
 </manifest>
