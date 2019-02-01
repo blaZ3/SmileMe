@@ -1,0 +1,23 @@
+package me.tellvivk.smileme.app.model
+
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+
+data class Image(
+    @SerializedName("_id")
+    @Expose
+    val id: Int? = 0,
+
+    @SerializedName("picture")
+    @Expose
+    val imgUrl: String? = "",
+
+    @Expose
+    val comment: String? = "",
+
+    @Expose
+    val title: String? = "",
+
+    @Expose
+    val publishedAt: String? = ""
+)
