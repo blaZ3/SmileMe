@@ -2,6 +2,7 @@ package me.tellvivk.smileme
 
 import me.tellvivk.smileme.app.model.ImageRepository
 import me.tellvivk.smileme.app.model.ImageRepositoryI
+import me.tellvivk.smileme.app.screens.fullScreen.FullScreenImageViewModel
 import me.tellvivk.smileme.app.screens.home.HomeViewModel
 import me.tellvivk.smileme.dataSources.DummyImageDataSource
 import me.tellvivk.smileme.dataSources.FileImageDataSource
@@ -14,7 +15,6 @@ import me.tellvivk.smileme.helpers.networkHelper.NetworkHelperI
 import me.tellvivk.smileme.helpers.stringFetcher.AppStringFetcher
 import me.tellvivk.smileme.helpers.stringFetcher.StringFetcherI
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.viewmodel.experimental.builder.viewModel
 import org.koin.android.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.module
 import retrofit2.Retrofit
@@ -48,9 +48,15 @@ class AppModule {
             viewModel { HomeViewModel(imagesRepo = get(), stringFetcher = get()) }
         }
 
+        private val fullScreenModule = module {
+            viewModel { FullScreenImageViewModel() }
+        }
+
+
         val modules = listOf(
             appModule,
-            homeModule
+            homeModule,
+            fullScreenModule
         )
     }
 

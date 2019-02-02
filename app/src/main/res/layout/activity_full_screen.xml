@@ -1,10 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".app.screens.home.detail.FullScreenActivity">
+        tools:context=".app.screens.fullScreen.FullScreenActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/imgFullScreenImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/place_holder"/>
+
+    <ProgressBar
+        android:id="@+id/progressFullScreenImage"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/txtFullScreenImageDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextSecondary"
+        android:background="@drawable/background_gradient"
+        android:padding="@dimen/paddingHalf"
+        android:layout_gravity="bottom"
+        tools:text="Lorem Ipsum"/>
+
+</FrameLayout>
