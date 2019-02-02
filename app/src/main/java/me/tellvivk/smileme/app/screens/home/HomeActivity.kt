@@ -1,11 +1,11 @@
 package me.tellvivk.smileme.app.screens.home
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.DisplayMetrics
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
@@ -21,15 +21,14 @@ import me.tellvivk.smileme.app.model.Image
 import me.tellvivk.smileme.app.screens.fullScreen.FullScreenActivity
 import me.tellvivk.smileme.app.screens.home.adapter.HomeImagesAdapter
 import me.tellvivk.smileme.app.screens.home.adapter.ImagesListDiffCallback
+import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialog
+import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialogInterface
 import me.tellvivk.smileme.databinding.ActivityHomeBinding
 import org.koin.android.ext.android.get
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import android.util.DisplayMetrics
-
-
 
 
 class HomeActivity : BaseActivity(), BaseView {
@@ -53,10 +52,7 @@ class HomeActivity : BaseActivity(), BaseView {
         windowManager.defaultDisplay.getMetrics(displayMetrics)
         screenH = displayMetrics.heightPixels
         screenW = displayMetrics.widthPixels
-    }
 
-    override fun onStart() {
-        super.onStart()
         initView()
     }
 
@@ -119,7 +115,13 @@ class HomeActivity : BaseActivity(), BaseView {
                     showToast(this.msg)
                 }
                 is ShowImageDescriptionDialog -> {
-
+                    val confirmNewImageDialog = ConfirmNewImageDialog(this@HomeActivity,
+                        bitmap = this.selectedImageThumbNail, callback = object : ConfirmNewImageDialogInterface{
+                            override fun confirmed(title: String, comment: String) {
+                                viewModel.saveImage(title = title, comment = comment)
+                            }
+                        })
+                    confirmNewImageDialog.show()
                 }
             }
         }

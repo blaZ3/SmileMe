@@ -2,6 +2,8 @@ package me.tellvivk.smileme.app.screens.home
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import me.tellvivk.smileme.R
@@ -12,43 +14,76 @@ import me.tellvivk.smileme.app.base.ViewEvent
 import me.tellvivk.smileme.app.model.Image
 import me.tellvivk.smileme.app.model.ImageRepositoryI
 import me.tellvivk.smileme.helpers.stringFetcher.StringFetcherI
+import java.util.*
 
-class HomeViewModel(private val imagesRepo: ImageRepositoryI,
-                    private val stringFetcher: StringFetcherI): BaseViewModel() {
+class HomeViewModel(
+    private val imagesRepo: ImageRepositoryI,
+    private val stringFetcher: StringFetcherI
+) : BaseViewModel() {
 
     init {
         model = HomeStateModel()
         initEvent = InitHomeEvent
     }
 
-    fun gotImage(imagePath: String, screenW: Int, screenH: Int){
-        (model as HomeStateModel).apply {
-
+    fun gotImage(imagePath: String, screenW: Int, screenH: Int) {
+        Single.create<Pair<String, Bitmap>> { emitter ->
             val bmOptions = BitmapFactory.Options().apply {
-                // Get the dimensions of the bitmap
                 inJustDecodeBounds = true
                 BitmapFactory.decodeFile(imagePath, this)
                 val photoW: Int = outWidth
                 val photoH: Int = outHeight
-
-                // Determine how much to scale down the image
                 val scaleFactor: Int = Math.min(photoW / screenW, photoH / screenH)
-
-                // Decode the image file into a Bitmap sized to fill the View
                 inJustDecodeBounds = false
                 inSampleSize = scaleFactor
                 inPurgeable = true
             }
             BitmapFactory.decodeFile(imagePath, bmOptions)?.also { bitmap ->
-                updateModel(this.copy(selectedImagePath = imagePath, selectedImageThumbNail = bitmap))
+                emitter.onSuccess(Pair(imagePath, bitmap))
             }
+        }.subscribeOn(Schedulers.computation())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSuccess { pair ->
+                (model as HomeStateModel).apply {
+                    updateModel(
+                        this.copy(
+                            selectedImagePath = pair.first,
+                            selectedImageThumbNail = pair.second
+                        )
+                    )
+                    sendEvent(ShowImageDescriptionDialog(
+                        selectedImageThumbNail = pair.second
+                    ))
+                }
+            }
+            .subscribe()
+    }
+
+    fun saveImage(title: String, comment: String) {
+        (model as HomeStateModel).apply {
+            val image = Image(
+                filePath = selectedImagePath,
+                imgUrl = "",
+                title = title,
+                comment = comment,
+                id = UUID.randomUUID().hashCode().toString(),
+                publishedAt = Date().toString()
+            )
+
+//            image.save()
         }
     }
 
-    fun getImages(){
+    fun getImages() {
         (model as HomeStateModel).apply {
-            updateModel(this.copy(progress = this.progress.copy(isShown = true,
-                text = stringFetcher.getString(R.string.str_progress))))
+            updateModel(
+                this.copy(
+                    progress = this.progress.copy(
+                        isShown = true,
+                        text = stringFetcher.getString(R.string.str_progress)
+                    )
+                )
+            )
         }
         imagesRepo
             .getImages()
@@ -56,9 +91,12 @@ class HomeViewModel(private val imagesRepo: ImageRepositoryI,
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess {
                 (model as HomeStateModel).apply {
-                    updateModel(this.copy(
-                        images = it,
-                        progress = this.progress.copy(isShown = false)))
+                    updateModel(
+                        this.copy(
+                            images = it,
+                            progress = this.progress.copy(isShown = false)
+                        )
+                    )
                 }
             }.doOnError {
                 sendEvent(LoadingErrorEvent(it.message.toString()))
@@ -70,14 +108,14 @@ class HomeViewModel(private val imagesRepo: ImageRepositoryI,
 
 data class HomeStateModel(
     val images: List<Image> = listOf(),
-    val progress:ProgressStateModel =  ProgressStateModel(),
+    val progress: ProgressStateModel = ProgressStateModel(),
 
     val selectedImagePath: String = "",
     val selectedImageThumbNail: Bitmap? = null
-): StateModel()
+) : StateModel()
 
 
-sealed class HomeViewEvent: ViewEvent
-object InitHomeEvent: HomeViewEvent()
-data class LoadingErrorEvent(val msg: String): HomeViewEvent()
-data class ShowImageDescriptionDialog(val selectedImageThumbNail: Bitmap): HomeViewEvent()
+sealed class HomeViewEvent : ViewEvent
+object InitHomeEvent : HomeViewEvent()
+data class LoadingErrorEvent(val msg: String) : HomeViewEvent()
+data class ShowImageDescriptionDialog(val selectedImageThumbNail: Bitmap) : HomeViewEvent()

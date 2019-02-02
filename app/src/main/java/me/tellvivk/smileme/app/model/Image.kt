@@ -22,5 +22,7 @@ data class Image(
     @Expose
     val publishedAt: String? = "",
 
+    val filePath: String? = "",
+
     val bitmap: Bitmap? = null
 )
