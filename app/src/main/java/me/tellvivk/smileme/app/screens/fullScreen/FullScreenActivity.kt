@@ -16,12 +16,10 @@ import me.tellvivk.smileme.app.model.Image
 import me.tellvivk.smileme.helpers.imageHelper.ImageHelperI
 import org.koin.android.ext.android.get
 import java.io.File
-import java.util.*
-import java.util.zip.GZIPOutputStream
 
 class FullScreenActivity : AppCompatActivity(), BaseView {
 
-    private lateinit var image: Image
+    private var image: Image? = null
     private lateinit var viewModel: FullScreenImageViewModel
 
     private lateinit var imageHelper: ImageHelperI
@@ -55,11 +53,7 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
             .autoDisposable(AndroidLifecycleScopeProvider.from(this))
             .subscribe { handleEvent(it) }
 
-
-        progressFullScreenImage.visibility = View.GONE
-        imgFullScreenImage.visibility = View.VISIBLE
-
-        image.let {
+        image?.let {
             if (!it.imgUrl.isNullOrEmpty()){
                 imageHelper.loadFromUrl(context = this,
                     url = it.imgUrl!!, iv = imgFullScreenImage)
@@ -68,6 +62,16 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
                     file = File(it.filePath),
                     iv = imgFullScreenImage)
             }
+
+            it.title.apply {
+                txtFullScreenImageDescription.text = this
+            }
+
+            it.comment.apply {
+                txtFullScreenImageDescription.text =
+                        "${txtFullScreenImageDescription.text.toString()}\n$this"
+            }
+
         }
     }
 

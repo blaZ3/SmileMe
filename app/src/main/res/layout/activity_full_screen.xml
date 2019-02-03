@@ -14,16 +14,12 @@
         android:scaleType="centerCrop"
         android:src="@drawable/place_holder"/>
 
-    <ProgressBar
-        android:id="@+id/progressFullScreenImage"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center"/>
-
     <TextView
         android:id="@+id/txtFullScreenImageDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="16sp"
         android:textAppearance="@style/TextSecondary"
         android:background="@drawable/background_gradient"
         android:padding="@dimen/paddingHalf"
