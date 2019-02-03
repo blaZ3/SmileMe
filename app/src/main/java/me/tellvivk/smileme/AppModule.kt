@@ -14,6 +14,8 @@ import me.tellvivk.smileme.dataSources.LocalImageDataSource
 import me.tellvivk.smileme.dataSources.NetworkImageDataSource
 import me.tellvivk.smileme.helpers.fileHelper.FileHelper
 import me.tellvivk.smileme.helpers.fileHelper.FileHelperI
+import me.tellvivk.smileme.helpers.imageHelper.ImageHelper
+import me.tellvivk.smileme.helpers.imageHelper.ImageHelperI
 import me.tellvivk.smileme.helpers.logger.AppLogger
 import me.tellvivk.smileme.helpers.logger.LoggerI
 import me.tellvivk.smileme.helpers.networkHelper.NetworkHelper
@@ -36,6 +38,7 @@ class AppModule {
             single<StringFetcherI> { AppStringFetcher(androidContext()) }
             single<NetworkHelperI> { NetworkHelper(androidContext()) }
             single<FileHelperI> { FileHelper(androidContext()) }
+            single<ImageHelperI> { ImageHelper() }
             single(name = "screenSize") { (windowManager: WindowManager) ->
                 val displayMetrics = DisplayMetrics()
 

@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
@@ -24,7 +23,6 @@ import me.tellvivk.smileme.app.screens.home.adapter.ImagesListDiffCallback
 import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialog
 import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialogInterface
 import me.tellvivk.smileme.databinding.ActivityHomeBinding
-import me.tellvivk.smileme.helpers.logger.AppLogger
 import me.tellvivk.smileme.helpers.logger.LoggerI
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
@@ -45,7 +43,7 @@ class HomeActivity : BaseActivity(), BaseView {
     private val REQUEST_IMAGE_CAPTURE = 1
     private var currentPhotoPath: String = ""
 
-    private val appLogger:LoggerI by inject()
+    private val appLogger: LoggerI by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,9 +52,12 @@ class HomeActivity : BaseActivity(), BaseView {
     }
 
     override fun initView() {
-        viewModel = get{ parametersOf(windowManager) }
+        viewModel = get { parametersOf(windowManager) }
 
-        homeAdapter = HomeImagesAdapter(listOf(), this, homeImagesAdapter)
+        homeAdapter = HomeImagesAdapter(
+            listOf(), this, homeImagesAdapterInterface,
+            imageHelper = get()
+        )
         recyclerHome.layoutManager = StaggeredGridLayoutManager(
             2,
             StaggeredGridLayoutManager.VERTICAL
@@ -114,7 +115,8 @@ class HomeActivity : BaseActivity(), BaseView {
                 }
                 is ShowImageDescriptionDialog -> {
                     val confirmNewImageDialog = ConfirmNewImageDialog(this@HomeActivity,
-                        bitmap = this.selectedImageThumbNail, callback = object : ConfirmNewImageDialogInterface {
+                        bitmap = this.selectedImageThumbNail, callback =
+                        object : ConfirmNewImageDialogInterface {
                             override fun confirmed(title: String, comment: String) {
                                 viewModel.saveImage(title = title, comment = comment)
                             }
@@ -131,11 +133,12 @@ class HomeActivity : BaseActivity(), BaseView {
         }
     }
 
-    private val homeImagesAdapter = object : HomeImagesAdapter.HomeImagesAdapterInterface {
-        override fun onImageClicked(image: Image) {
-            FullScreenActivity.start(this@HomeActivity, image)
+    private val homeImagesAdapterInterface =
+        object : HomeImagesAdapter.HomeImagesAdapterInterface {
+            override fun onImageClicked(image: Image) {
+                FullScreenActivity.start(this@HomeActivity, image)
+            }
         }
-    }
 
     private fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->

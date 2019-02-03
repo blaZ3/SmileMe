@@ -51,7 +51,9 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "com.google.android.material:material:1.1.0-alpha03"
 
-    implementation 'com.squareup.picasso:picasso:2.71828'
+//    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 
     implementation "io.reactivex.rxjava2:rxjava:$rx_java_version"
     implementation "io.reactivex.rxjava2:rxandroid:$rx_android_version"

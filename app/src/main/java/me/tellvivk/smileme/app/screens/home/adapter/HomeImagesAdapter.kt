@@ -1,43 +1,41 @@
 package me.tellvivk.smileme.app.screens.home.adapter
 
 import android.content.Context
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.layout_item_image.view.*
 import me.tellvivk.smileme.R
 import me.tellvivk.smileme.app.model.Image
+import me.tellvivk.smileme.helpers.imageHelper.ImageHelper
+import me.tellvivk.smileme.helpers.imageHelper.ImageHelperI
 import java.io.File
 import java.util.*
 
 class HomeImagesAdapter(
     var items: List<Image>,
     private val context: Context,
-    private val imageInterface: HomeImagesAdapterInterface
+    private val imageInterface: HomeImagesAdapterInterface,
+    private val imageHelper: ImageHelperI
 ) : RecyclerView.Adapter<HomeImagesAdapter.HomeImagesViewHolder>() {
 
     class HomeImagesViewHolder(private val view: View,
-                               private val adapterInterface: HomeImagesAdapterInterface) :
+                               private val adapterInterface: HomeImagesAdapterInterface,
+                               private val imageHelper: ImageHelperI) :
         RecyclerView.ViewHolder(view) {
         fun onBind(item: Image) {
 
             view.txtListImageTitle.text = item.title
 
             if (!item.filePath.isNullOrEmpty()){
-                Picasso.get()
-                    .load(Uri.fromFile(File(item.filePath)))
-                    .placeholder(R.drawable.place_holder)
-                    .into(view.imgListImage)
+                imageHelper.loadFromFile(context = view.context,
+                    file = File(item.filePath), iv = view.imgListImage)
             }else {
                 item.imgUrl?.let {
                     val url = "$it&cacheBust=${UUID.randomUUID().hashCode()}"
-                    Picasso.get()
-                        .load(url)
-                        .placeholder(R.drawable.place_holder)
-                        .into(view.imgListImage)
+                    imageHelper.loadFromUrl(context = view.context, url = url,
+                        iv = view.imgListImage)
                 }
             }
             view.setOnClickListener { adapterInterface.onImageClicked(item) }
@@ -46,7 +44,7 @@ class HomeImagesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeImagesViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.layout_item_image, parent, false)
-        return HomeImagesViewHolder(view, imageInterface)
+        return HomeImagesViewHolder(view, imageInterface, imageHelper)
     }
 
     override fun onBindViewHolder(holder: HomeImagesViewHolder, position: Int) {
