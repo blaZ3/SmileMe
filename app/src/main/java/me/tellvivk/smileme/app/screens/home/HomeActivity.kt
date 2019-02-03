@@ -5,7 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.DisplayMetrics
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
@@ -24,7 +24,11 @@ import me.tellvivk.smileme.app.screens.home.adapter.ImagesListDiffCallback
 import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialog
 import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialogInterface
 import me.tellvivk.smileme.databinding.ActivityHomeBinding
+import me.tellvivk.smileme.helpers.logger.AppLogger
+import me.tellvivk.smileme.helpers.logger.LoggerI
 import org.koin.android.ext.android.get
+import org.koin.android.ext.android.inject
+import org.koin.core.parameter.parametersOf
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -41,23 +45,16 @@ class HomeActivity : BaseActivity(), BaseView {
     private val REQUEST_IMAGE_CAPTURE = 1
     private var currentPhotoPath: String = ""
 
-    private var screenW: Int = 0
-    private var screenH: Int = 0
+    private val appLogger:LoggerI by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataBinding = DataBindingUtil.setContentView(this, me.tellvivk.smileme.R.layout.activity_home)
-
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        screenH = displayMetrics.heightPixels
-        screenW = displayMetrics.widthPixels
-
         initView()
     }
 
     override fun initView() {
-        viewModel = get()
+        viewModel = get{ parametersOf(windowManager) }
 
         homeAdapter = HomeImagesAdapter(listOf(), this, homeImagesAdapter)
 
@@ -85,10 +82,10 @@ class HomeActivity : BaseActivity(), BaseView {
     }
 
     override fun updateView(stateModel: StateModel) {
+        appLogger.d("updateView", stateModel.toString())
         (stateModel as HomeStateModel).apply {
 
             val updatedItems = ArrayList<Image>()
-            //add plus icon
             updatedItems.addAll(stateModel.images)
 
             val diffResult = DiffUtil.calculateDiff(
@@ -106,6 +103,7 @@ class HomeActivity : BaseActivity(), BaseView {
     }
 
     override fun handleEvent(event: ViewEvent) {
+        appLogger.d("handleEvent", event.toString())
         (event as HomeViewEvent).apply {
             when (this) {
                 InitHomeEvent -> {
@@ -116,7 +114,7 @@ class HomeActivity : BaseActivity(), BaseView {
                 }
                 is ShowImageDescriptionDialog -> {
                     val confirmNewImageDialog = ConfirmNewImageDialog(this@HomeActivity,
-                        bitmap = this.selectedImageThumbNail, callback = object : ConfirmNewImageDialogInterface{
+                        bitmap = this.selectedImageThumbNail, callback = object : ConfirmNewImageDialogInterface {
                             override fun confirmed(title: String, comment: String) {
                                 viewModel.saveImage(title = title, comment = comment)
                             }
@@ -129,7 +127,7 @@ class HomeActivity : BaseActivity(), BaseView {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            viewModel.gotImage(currentPhotoPath, screenW = screenW, screenH = screenH)
+            viewModel.gotImage(currentPhotoPath)
         }
     }
 

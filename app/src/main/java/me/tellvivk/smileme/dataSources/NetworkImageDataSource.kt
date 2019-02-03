@@ -11,8 +11,6 @@ class NetworkImageDataSource(retrofit: Retrofit) : ImageDataSourceI {
 
     private val imageService = retrofit.create(ImageService::class.java)
 
-
-
     override fun loadImages(): Single<DataResponse> {
         return Single.create { emitter ->
             imageService.getImages().enqueue(object : Callback<List<Image>> {
@@ -35,6 +33,10 @@ class NetworkImageDataSource(retrofit: Retrofit) : ImageDataSourceI {
                 }
             })
         }
+    }
+
+    override fun saveImage(image: Image): Single<Image> {
+        return Single.never()
     }
 
 }

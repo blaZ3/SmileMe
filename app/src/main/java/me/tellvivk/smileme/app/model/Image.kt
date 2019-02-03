@@ -1,28 +1,34 @@
 package me.tellvivk.smileme.app.model
 
 import android.graphics.Bitmap
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
+@Entity
 data class Image(
     @SerializedName("_id")
     @Expose
-    val id: String? = "",
+    @PrimaryKey
+    var id: String = "",
 
     @SerializedName("picture")
     @Expose
-    val imgUrl: String? = "",
+    var imgUrl: String? = "",
 
     @Expose
-    val comment: String? = "",
+    var comment: String? = "",
 
     @Expose
-    val title: String? = "",
+    var title: String? = "",
 
     @Expose
-    val publishedAt: String? = "",
+    var publishedAt: String? = "",
 
-    val filePath: String? = "",
+    var filePath: String? = "",
 
+    @Ignore
     val bitmap: Bitmap? = null
 )

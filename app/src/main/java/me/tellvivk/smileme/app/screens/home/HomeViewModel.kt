@@ -13,12 +13,15 @@ import me.tellvivk.smileme.app.base.StateModel
 import me.tellvivk.smileme.app.base.ViewEvent
 import me.tellvivk.smileme.app.model.Image
 import me.tellvivk.smileme.app.model.ImageRepositoryI
+import me.tellvivk.smileme.helpers.fileHelper.FileHelperI
 import me.tellvivk.smileme.helpers.stringFetcher.StringFetcherI
 import java.util.*
 
 class HomeViewModel(
     private val imagesRepo: ImageRepositoryI,
-    private val stringFetcher: StringFetcherI
+    private val stringFetcher: StringFetcherI,
+    private val fileHelper: FileHelperI,
+    private val screenSize: Pair<Int, Int>
 ) : BaseViewModel() {
 
     init {
@@ -26,22 +29,9 @@ class HomeViewModel(
         initEvent = InitHomeEvent
     }
 
-    fun gotImage(imagePath: String, screenW: Int, screenH: Int) {
-        Single.create<Pair<String, Bitmap>> { emitter ->
-            val bmOptions = BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-                BitmapFactory.decodeFile(imagePath, this)
-                val photoW: Int = outWidth
-                val photoH: Int = outHeight
-                val scaleFactor: Int = Math.min(photoW / screenW, photoH / screenH)
-                inJustDecodeBounds = false
-                inSampleSize = scaleFactor
-                inPurgeable = true
-            }
-            BitmapFactory.decodeFile(imagePath, bmOptions)?.also { bitmap ->
-                emitter.onSuccess(Pair(imagePath, bitmap))
-            }
-        }.subscribeOn(Schedulers.computation())
+    fun gotImage(imagePath: String) {
+        fileHelper.getBitmapFromFile(imagePath, screenSize.first, screenSize.second)
+            .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess { pair ->
                 (model as HomeStateModel).apply {
@@ -51,9 +41,11 @@ class HomeViewModel(
                             selectedImageThumbNail = pair.second
                         )
                     )
-                    sendEvent(ShowImageDescriptionDialog(
-                        selectedImageThumbNail = pair.second
-                    ))
+                    sendEvent(
+                        ShowImageDescriptionDialog(
+                            selectedImageThumbNail = pair.second
+                        )
+                    )
                 }
             }
             .subscribe()
@@ -70,7 +62,12 @@ class HomeViewModel(
                 publishedAt = Date().toString()
             )
 
-//            image.save()
+            imagesRepo.saveImage(image)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess {
+                    getImages()
+                }.subscribe()
         }
     }
 
@@ -85,8 +82,9 @@ class HomeViewModel(
                 )
             )
         }
+
         imagesRepo
-            .getImages()
+            .getImages(screenSize)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess {

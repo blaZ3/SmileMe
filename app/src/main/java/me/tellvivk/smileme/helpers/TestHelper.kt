@@ -1,8 +1,8 @@
 package me.tellvivk.smileme.helpers
 
-import android.media.Image
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import me.tellvivk.smileme.app.model.Image
 
 class TestHelper {
 
