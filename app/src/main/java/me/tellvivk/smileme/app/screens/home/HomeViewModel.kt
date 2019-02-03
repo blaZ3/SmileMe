@@ -30,7 +30,7 @@ class HomeViewModel(
     }
 
     fun gotImage(imagePath: String) {
-        fileHelper.getBitmapFromFile(imagePath, screenSize.first, screenSize.second)
+        fileHelper.getBitmapFromFile(imagePath, screenSize.first/2, screenSize.second/2)
             .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess { pair ->

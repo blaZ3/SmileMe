@@ -57,11 +57,11 @@ class HomeActivity : BaseActivity(), BaseView {
         viewModel = get{ parametersOf(windowManager) }
 
         homeAdapter = HomeImagesAdapter(listOf(), this, homeImagesAdapter)
-
         recyclerHome.layoutManager = StaggeredGridLayoutManager(
             2,
             StaggeredGridLayoutManager.VERTICAL
         )
+        recyclerHome.setHasFixedSize(true)
         recyclerHome.adapter = homeAdapter
 
         viewModel.getViewModelObservable()

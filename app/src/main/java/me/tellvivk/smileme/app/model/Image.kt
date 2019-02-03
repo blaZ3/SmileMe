@@ -27,8 +27,5 @@ data class Image(
     @Expose
     var publishedAt: String? = "",
 
-    var filePath: String? = "",
-
-    @Ignore
-    val bitmap: Bitmap? = null
+    var filePath: String? = ""
 )

@@ -1,6 +1,7 @@
 package me.tellvivk.smileme.app.screens.home.adapter
 
 import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.layout_item_image.view.*
 import me.tellvivk.smileme.R
 import me.tellvivk.smileme.app.model.Image
+import java.io.File
 import java.util.*
 
 class HomeImagesAdapter(
@@ -24,8 +26,11 @@ class HomeImagesAdapter(
 
             view.txtListImageTitle.text = item.title
 
-            if (item.bitmap != null){
-                view.imgListImage.setImageBitmap(item.bitmap)
+            if (!item.filePath.isNullOrEmpty()){
+                Picasso.get()
+                    .load(Uri.fromFile(File(item.filePath)))
+                    .placeholder(R.drawable.place_holder)
+                    .into(view.imgListImage)
             }else {
                 item.imgUrl?.let {
                     val url = "$it&cacheBust=${UUID.randomUUID().hashCode()}"

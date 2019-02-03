@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.RequestCreator
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import kotlinx.android.synthetic.main.activity_full_screen.*
@@ -55,6 +56,7 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
 
         progressFullScreenImage.visibility = View.VISIBLE
         imgFullScreenImage.visibility = View.GONE
+
         Picasso.get()
             .load(imgUrl)
             .placeholder(R.drawable.place_holder)

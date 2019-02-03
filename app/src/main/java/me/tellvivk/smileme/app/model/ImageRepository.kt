@@ -18,22 +18,6 @@ class ImageRepository(
             .toObservable()
             .map { it.items as List<Image> }
             .flatMapIterable { it }
-            .flatMap { image ->
-                Observable.create<Image> { emitter ->
-                    fileHelper.getBitmapFromFile(
-                        image.filePath!!, screenSize.first,
-                        screenSize.second
-                    ).doOnSuccess { pair ->
-                            emitter.onNext(
-                                image.copy(
-                                    bitmap = pair.second
-                                )
-                            )
-                            emitter.onComplete()
-                        }.subscribeOn(Schedulers.computation())
-                        .subscribe()
-                }
-            }
 
         val networkImageObservable = networkDataSource.loadImages()
             .toObservable()
