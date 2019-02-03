@@ -1,6 +1,7 @@
 package me.tellvivk.smileme.app.screens.fullScreen
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -17,13 +18,12 @@ import me.tellvivk.smileme.app.base.StateModel
 import me.tellvivk.smileme.app.base.ViewEvent
 import me.tellvivk.smileme.app.model.Image
 import org.koin.android.ext.android.get
-import java.lang.Exception
+import java.io.File
 import java.util.*
 
 class FullScreenActivity : AppCompatActivity(), BaseView {
 
-    private lateinit var imgUrl: String
-
+    private lateinit var image: Image
     private lateinit var viewModel: FullScreenImageViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,8 +31,9 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
         setContentView(R.layout.activity_full_screen)
 
         val b = intent.extras
-        if (b.containsKey(EXTRA_IMG_URL)){
-            imgUrl = b.getString(EXTRA_IMG_URL, "")
+        if (b.containsKey(EXTRA_IMAGE)) {
+            image = b.getParcelable(EXTRA_IMAGE)
+//            imgUrl = b.getString(EXTRA_IMG_URL, "")
         }
 
     }
@@ -51,28 +52,25 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
 
         viewModel.getViewEventObservable()
             .autoDisposable(AndroidLifecycleScopeProvider.from(this))
-            .subscribe{ handleEvent(it) }
+            .subscribe { handleEvent(it) }
 
 
         progressFullScreenImage.visibility = View.VISIBLE
         imgFullScreenImage.visibility = View.GONE
 
-        Picasso.get()
-            .load(imgUrl)
-            .placeholder(R.drawable.place_holder)
-            .into(imgFullScreenImage, object: Callback{
-                override fun onSuccess() {
-                    imgFullScreenImage.visibility = View.VISIBLE
-                    progressFullScreenImage.visibility = View.GONE
-                }
-
-                override fun onError(e: Exception?) {
-                    imgFullScreenImage.visibility = View.VISIBLE
-                    progressFullScreenImage.visibility = View.GONE
-                    imgFullScreenImage.setImageDrawable(
-                        resources.getDrawable(R.drawable.place_holder))
-                }
-            })
+        image.let {
+            var picassoRequest: RequestCreator? = null
+            if (!it.filePath.isNullOrEmpty()) {
+                picassoRequest = Picasso.get().load(Uri.fromFile(File(it.filePath)))
+            } else if (!it.imgUrl.isNullOrEmpty()) {
+                picassoRequest = Picasso.get()
+                    .load("${it.imgUrl}&cacheBust=${UUID.randomUUID().hashCode()}")
+            }
+            picassoRequest?.placeholder(R.drawable.place_holder)?.into(
+                imgFullScreenImage,
+                picassoCallback
+            )
+        }
     }
 
     override fun getParentView(): BaseView? {
@@ -91,14 +89,30 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
         }
     }
 
+    private val picassoCallback = object : Callback {
+        override fun onSuccess() {
+            imgFullScreenImage.visibility = View.VISIBLE
+            progressFullScreenImage.visibility = View.GONE
+        }
+
+        override fun onError(e: Exception?) {
+            imgFullScreenImage.visibility = View.VISIBLE
+            progressFullScreenImage.visibility = View.GONE
+            imgFullScreenImage.setImageDrawable(
+                resources.getDrawable(R.drawable.place_holder)
+            )
+        }
+    }
+
     companion object {
         const val EXTRA_IMG_URL = "EXTRA_IMG_URL"
-        const val EXTRA_FILE = "EXTRA_FILE"
+        const val EXTRA_IMAGE = "EXTRA_IMAGE"
 
-        fun start(activity: BaseActivity, image: Image){
+        fun start(activity: BaseActivity, image: Image) {
             val intent = Intent(activity, FullScreenActivity::class.java)
-            intent.putExtra(EXTRA_IMG_URL,
-                "${image.imgUrl}&cacheBust=${UUID.randomUUID().hashCode()}")
+            intent.putExtra(EXTRA_IMAGE, image)
+//            intent.putExtra(EXTRA_IMG_URL,
+//                "${image.imgUrl}&cacheBust=${UUID.randomUUID().hashCode()}")
             activity.startActivity(intent)
         }
     }
