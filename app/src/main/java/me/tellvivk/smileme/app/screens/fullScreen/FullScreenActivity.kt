@@ -2,10 +2,13 @@ package me.tellvivk.smileme.app.screens.fullScreen
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_full_screen.*
 import me.tellvivk.smileme.R
 import me.tellvivk.smileme.app.base.BaseActivity
@@ -15,7 +18,9 @@ import me.tellvivk.smileme.app.base.ViewEvent
 import me.tellvivk.smileme.app.model.Image
 import me.tellvivk.smileme.helpers.imageHelper.ImageHelperI
 import org.koin.android.ext.android.get
+import shareViaIntent
 import java.io.File
+
 
 class FullScreenActivity : AppCompatActivity(), BaseView {
 
@@ -72,11 +77,34 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
                         "${txtFullScreenImageDescription.text.toString()}\n$this"
             }
 
-            fabSharePic.setOnClickListener {
+            fabSharePic.setOnClickListener { v->
+                if (!it.imgUrl.isNullOrEmpty()){
+
+                    Single.create<String> { emitter->
+                        val file: File = Glide.with(this)
+                            .asFile()
+                            .load(it.imgUrl)
+                            .submit()
+                            .get()
+                        val path: String = file.path
+                        emitter.onSuccess(path)
+                    }.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnSuccess { downloadedFilePath->
+                            downloadedFilePath.shareViaIntent(this)
+                        }
+                        .subscribe()
+
+
+                } else if(!it.filePath.isNullOrEmpty()){
+                    it.filePath!!.shareViaIntent(this)
+                }
 
             }
         }
     }
+
+
 
     override fun getParentView(): BaseView? {
         return null
@@ -105,3 +133,4 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
         }
     }
 }
+

@@ -2,17 +2,17 @@ package me.tellvivk.smileme.app.screens.home
 
 import android.app.ProgressDialog
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
-import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import checkAllPermissions
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
+import dispatchTakePictureIntent
 import kotlinx.android.synthetic.main.activity_home.*
+import me.tellvivk.smileme.R
 import me.tellvivk.smileme.app.base.BaseActivity
 import me.tellvivk.smileme.app.base.BaseView
 import me.tellvivk.smileme.app.base.StateModel
@@ -42,21 +42,32 @@ class HomeActivity : BaseActivity(), BaseView {
 
     private lateinit var dataBinding: ActivityHomeBinding
 
-    private val REQUEST_IMAGE_CAPTURE = 1
+    private val requestImageCapture = 1
     private var currentPhotoPath: String = ""
 
     private lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        dataBinding = DataBindingUtil.setContentView(this, me.tellvivk.smileme.R.layout.activity_home)
+        dataBinding = DataBindingUtil.setContentView(
+            this,
+            R.layout.activity_home
+        )
 
         progressDialog = ProgressDialog(this)
         progressDialog.setTitle("Please wait")
         progressDialog.setMessage("Processing...")
         progressDialog.setCancelable(false)
 
+        this.checkAllPermissions()
+
         initView()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == requestImageCapture && resultCode == RESULT_OK) {
+            viewModel.gotImage(currentPhotoPath)
+        }
     }
 
     override fun initView() {
@@ -82,12 +93,17 @@ class HomeActivity : BaseActivity(), BaseView {
             .subscribe { handleEvent(it) }
 
         fabAddNewPic.setOnClickListener {
-            dispatchTakePictureIntent()
-        }
-    }
+            try {
+                createTempImageFile()
+                this.dispatchTakePictureIntent(
+                    requestImageCapture,
+                    File(currentPhotoPath)
+                )
+            } catch (ex: IOException) {
+                showToast(ex.message.toString())
+            }
 
-    override fun getParentView(): BaseView? {
-        return null
+        }
     }
 
     override fun updateView(stateModel: StateModel) {
@@ -121,9 +137,15 @@ class HomeActivity : BaseActivity(), BaseView {
                 is LoadingErrorEvent -> {
                     showToast(this.msg)
                 }
-                ScrollToTop -> { recyclerHome.smoothScrollToPosition(0) }
-                ShowBlockingProgress -> { progressDialog.show() }
-                HideBlockingProgress -> { progressDialog.dismiss() }
+                ScrollToTop -> {
+                    recyclerHome.smoothScrollToPosition(0)
+                }
+                ShowBlockingProgress -> {
+                    progressDialog.show()
+                }
+                HideBlockingProgress -> {
+                    progressDialog.dismiss()
+                }
                 is ShowImageDescriptionDialog -> {
                     val confirmNewImageDialog = ConfirmNewImageDialog(this@HomeActivity,
                         bitmap = null, imageHelper = get(),
@@ -139,10 +161,8 @@ class HomeActivity : BaseActivity(), BaseView {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            viewModel.gotImage(currentPhotoPath)
-        }
+    override fun getParentView(): BaseView? {
+        return null
     }
 
     private val homeImagesAdapterInterface =
@@ -152,34 +172,8 @@ class HomeActivity : BaseActivity(), BaseView {
             }
         }
 
-    private fun dispatchTakePictureIntent() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Ensure that there's a camera activity to handle the intent
-            takePictureIntent.resolveActivity(packageManager)?.also {
-                // Create the File where the photo should go
-                val photoFile: File? = try {
-                    createImageFile()
-                } catch (ex: IOException) {
-                    // Error occurred while creating the File
-                    showToast(ex.message.toString())
-                    null
-                }
-                // Continue only if the File was successfully created
-                photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "me.tellvivk.smileme.fileprovider",
-                        it
-                    )
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-                }
-            }
-        }
-    }
-
     @Throws(IOException::class)
-    private fun createImageFile(): File {
+    private fun createTempImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
@@ -191,10 +185,11 @@ class HomeActivity : BaseActivity(), BaseView {
         }
     }
 
-
     companion object {
         fun start(activity: BaseActivity) {
             activity.startActivity(Intent(activity, HomeActivity::class.java))
         }
     }
 }
+
+
