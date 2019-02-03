@@ -72,6 +72,9 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
                         "${txtFullScreenImageDescription.text.toString()}\n$this"
             }
 
+            fabSharePic.setOnClickListener {
+
+            }
         }
     }
 
