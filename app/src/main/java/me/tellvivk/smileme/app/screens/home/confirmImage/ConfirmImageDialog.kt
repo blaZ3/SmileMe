@@ -7,9 +7,13 @@ import android.os.Bundle
 import android.view.Window
 import kotlinx.android.synthetic.main.layout_confirm_image_dialog.*
 import me.tellvivk.smileme.R
+import me.tellvivk.smileme.helpers.imageHelper.ImageHelperI
+import java.io.File
 
 class ConfirmNewImageDialog(context: Context,
                             private val bitmap: Bitmap?,
+                            private val imagePath: String?,
+                            private val imageHelper: ImageHelperI,
                             private val callback: ConfirmNewImageDialogInterface):
     Dialog(context){
 
@@ -19,10 +23,14 @@ class ConfirmNewImageDialog(context: Context,
         setContentView(R.layout.layout_confirm_image_dialog)
         setCancelable(false)
 
-        bitmap?.let {
-            imgConfirmImage.setImageBitmap(it)
-        }
+//        bitmap?.let {
+//            imgConfirmImage.setImageBitmap(it)
+//        }
 
+        imagePath?.let {
+            imageHelper.loadFromFile(context = context,
+                file = File(imagePath), iv = imgConfirmImage)
+        }
 
         btnConfirmImageCancel.setOnClickListener {
             dismiss()

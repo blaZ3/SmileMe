@@ -62,8 +62,7 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
         image.let {
             if (!it.imgUrl.isNullOrEmpty()){
                 imageHelper.loadFromUrl(context = this,
-                    url = "${it.imgUrl}&cacheBust=${UUID.randomUUID().hashCode()}",
-                    iv = imgFullScreenImage)
+                    url = it.imgUrl!!, iv = imgFullScreenImage)
             } else if(!it.filePath.isNullOrEmpty()){
                 imageHelper.loadFromFile(context = this,
                     file = File(it.filePath),

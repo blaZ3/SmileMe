@@ -33,8 +33,8 @@ class HomeImagesAdapter(
                     file = File(item.filePath), iv = view.imgListImage)
             }else {
                 item.imgUrl?.let {
-                    val url = "$it&cacheBust=${UUID.randomUUID().hashCode()}"
-                    imageHelper.loadFromUrl(context = view.context, url = url,
+//                    val url = "$it&cacheBust=${UUID.randomUUID().hashCode()}"
+                    imageHelper.loadFromUrl(context = view.context, url = it,
                         iv = view.imgListImage)
                 }
             }

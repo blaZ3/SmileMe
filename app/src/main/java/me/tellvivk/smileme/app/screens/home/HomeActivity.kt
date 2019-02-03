@@ -1,5 +1,6 @@
 package me.tellvivk.smileme.app.screens.home
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -35,6 +36,7 @@ import java.util.*
 
 class HomeActivity : BaseActivity(), BaseView {
 
+    private val appLogger: LoggerI by inject()
     private lateinit var viewModel: HomeViewModel
     private lateinit var homeAdapter: HomeImagesAdapter
 
@@ -43,11 +45,17 @@ class HomeActivity : BaseActivity(), BaseView {
     private val REQUEST_IMAGE_CAPTURE = 1
     private var currentPhotoPath: String = ""
 
-    private val appLogger: LoggerI by inject()
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataBinding = DataBindingUtil.setContentView(this, me.tellvivk.smileme.R.layout.activity_home)
+
+        progressDialog = ProgressDialog(this)
+        progressDialog.setTitle("Please wait")
+        progressDialog.setMessage("Processing...")
+        progressDialog.setCancelable(false)
+
         initView()
     }
 
@@ -113,9 +121,13 @@ class HomeActivity : BaseActivity(), BaseView {
                 is LoadingErrorEvent -> {
                     showToast(this.msg)
                 }
+                ScrollToTop -> { recyclerHome.smoothScrollToPosition(0) }
+                ShowBlockingProgress -> { progressDialog.show() }
+                HideBlockingProgress -> { progressDialog.dismiss() }
                 is ShowImageDescriptionDialog -> {
                     val confirmNewImageDialog = ConfirmNewImageDialog(this@HomeActivity,
-                        bitmap = this.selectedImageThumbNail, callback =
+                        bitmap = null, imageHelper = get(),
+                        imagePath = this.selectedImagePath, callback =
                         object : ConfirmNewImageDialogInterface {
                             override fun confirmed(title: String, comment: String) {
                                 viewModel.saveImage(title = title, comment = comment)

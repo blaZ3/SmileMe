@@ -5,6 +5,7 @@ import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import me.tellvivk.smileme.dataSources.ImageDataSourceI
 import me.tellvivk.smileme.helpers.fileHelper.FileHelperI
+import java.util.*
 
 class ImageRepository(
     private val networkDataSource: ImageDataSourceI,
@@ -27,7 +28,10 @@ class ImageRepository(
                 } else {
                     return@map listOf<Image>()
                 }
-            }.flatMapIterable { it }
+            }.flatMapIterable { it }.map {
+                val url = "${it.imgUrl}&cacheBust=${UUID.randomUUID().hashCode()}"
+                return@map it.copy(imgUrl = url)
+            }
 
         return Single.create { emitter ->
             Observable.merge(

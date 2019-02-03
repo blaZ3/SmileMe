@@ -8,7 +8,7 @@ import java.io.File
 
 class ImageHelper: ImageHelperI {
 
-    private val thumbNailScale = 0.3f
+    private val thumbNailScale = 0.2f
 
     override fun loadFromUrl(context: Context, url: String, iv: ImageView) {
         Glide.with(context)

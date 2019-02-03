@@ -12,7 +12,7 @@ class LocalImageDataSource(private val context: Context,
         return Single.create {
             it.onSuccess(DataResponse(
                 success = true,
-                items = imageDao.getAll()))
+                items = imageDao.getAll().reversed()))
         }
     }
 

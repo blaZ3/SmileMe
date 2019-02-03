@@ -30,25 +30,18 @@ class HomeViewModel(
     }
 
     fun gotImage(imagePath: String) {
-        fileHelper.getBitmapFromFile(imagePath, screenSize.first/2, screenSize.second/2)
-            .subscribeOn(Schedulers.computation())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess { pair ->
-                (model as HomeStateModel).apply {
-                    updateModel(
-                        this.copy(
-                            selectedImagePath = pair.first,
-                            selectedImageThumbNail = pair.second
-                        )
-                    )
-                    sendEvent(
-                        ShowImageDescriptionDialog(
-                            selectedImageThumbNail = pair.second
-                        )
-                    )
-                }
-            }
-            .subscribe()
+        (model as HomeStateModel).apply {
+            updateModel(
+                this.copy(
+                    selectedImagePath = imagePath
+                )
+            )
+            sendEvent(
+                ShowImageDescriptionDialog(
+                    selectedImagePath = imagePath
+                )
+            )
+        }
     }
 
     fun saveImage(title: String, comment: String) {
@@ -62,11 +55,18 @@ class HomeViewModel(
                 publishedAt = Date().toString()
             )
 
+            sendEvent(ShowBlockingProgress)
             imagesRepo.saveImage(image)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess {
-                    getImages()
+                    val newList = arrayListOf<Image>()
+                    newList.addAll(this.images)
+                    newList.add(0, image)
+
+                    updateModel(this.copy(images = newList))
+                    sendEvent(HideBlockingProgress)
+                    sendEvent(ScrollToTop)
                 }.subscribe()
         }
     }
@@ -108,12 +108,14 @@ data class HomeStateModel(
     val images: List<Image> = listOf(),
     val progress: ProgressStateModel = ProgressStateModel(),
 
-    val selectedImagePath: String = "",
-    val selectedImageThumbNail: Bitmap? = null
+    val selectedImagePath: String = ""
 ) : StateModel()
 
 
 sealed class HomeViewEvent : ViewEvent
 object InitHomeEvent : HomeViewEvent()
+object ScrollToTop : HomeViewEvent()
+object ShowBlockingProgress : HomeViewEvent()
+object HideBlockingProgress : HomeViewEvent()
 data class LoadingErrorEvent(val msg: String) : HomeViewEvent()
-data class ShowImageDescriptionDialog(val selectedImageThumbNail: Bitmap) : HomeViewEvent()
+data class ShowImageDescriptionDialog(val selectedImagePath: String) : HomeViewEvent()
