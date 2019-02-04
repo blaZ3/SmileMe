@@ -61,11 +61,10 @@ class AppModule {
             }
             single { get<AppDatabase>().getImagesDao() }
 
-            single<ImageDataSourceI>("network") { NetworkImageDataSource(retrofit = get()) }
+            single<ImageDataSourceI>("network") { NetworkImageDataSource(retrofit = get(),
+                networkHelper = get()) }
             single<ImageDataSourceI>("local") {
-                LocalImageDataSource(
-                    context = androidContext(), imageDao = get()
-                )
+                LocalImageDataSource(context = androidContext(), imageDao = get())
             }
             single<ImageDataSourceI>("dummy") { DummyImageDataSource() }
 

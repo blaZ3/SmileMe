@@ -22,24 +22,23 @@ import shareViaIntent
 import java.io.File
 
 
-class FullScreenActivity : AppCompatActivity(), BaseView {
-
-    private var image: Image? = null
+class FullScreenActivity : BaseActivity(), BaseView {
     private lateinit var viewModel: FullScreenImageViewModel
-
     private lateinit var imageHelper: ImageHelperI
+    private var image: Image? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_full_screen)
-
         imageHelper = get()
-
-        val b = intent.extras
-        if (b.containsKey(EXTRA_IMAGE)) {
-            image = b.getParcelable(EXTRA_IMAGE)
+        intent.extras?.let {
+            if (it.containsKey(EXTRA_IMAGE)) {
+                image = it.getParcelable(EXTRA_IMAGE)
+            }
         }
-
+        image?.title?.let {
+            initToolbar(it, toolbarFull)
+        }
     }
 
     override fun onStart() {
@@ -58,32 +57,26 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
             .autoDisposable(AndroidLifecycleScopeProvider.from(this))
             .subscribe { handleEvent(it) }
 
-        image?.let {
-            if (!it.imgUrl.isNullOrEmpty()){
+        image?.let { img->
+            if (!img.imgUrl.isNullOrEmpty()){
                 imageHelper.loadFromUrl(context = this,
-                    url = it.imgUrl!!, iv = imgFullScreenImage)
-            } else if(!it.filePath.isNullOrEmpty()){
+                    url = img.imgUrl!!, iv = imgFullScreenImage)
+            } else if(!img.filePath.isNullOrEmpty()){
                 imageHelper.loadFromFile(context = this,
-                    file = File(it.filePath),
+                    file = File(img.filePath),
                     iv = imgFullScreenImage)
             }
 
-            it.title.apply {
-                txtFullScreenImageDescription.text = this
+            img.comment.let { desc->
+                txtFullScreenImageDescription.text = desc
             }
 
-            it.comment.apply {
-                txtFullScreenImageDescription.text =
-                        "${txtFullScreenImageDescription.text.toString()}\n$this"
-            }
-
-            fabSharePic.setOnClickListener { v->
-                if (!it.imgUrl.isNullOrEmpty()){
-
+            fabSharePic.setOnClickListener {
+                if (!img.imgUrl.isNullOrEmpty()){
                     Single.create<String> { emitter->
                         val file: File = Glide.with(this)
                             .asFile()
-                            .load(it.imgUrl)
+                            .load(img.imgUrl)
                             .submit()
                             .get()
                         val path: String = file.path
@@ -96,36 +89,28 @@ class FullScreenActivity : AppCompatActivity(), BaseView {
                         .subscribe()
 
 
-                } else if(!it.filePath.isNullOrEmpty()){
-                    it.filePath!!.shareViaIntent(this)
+                } else if(!img.filePath.isNullOrEmpty()){
+                    img.filePath!!.shareViaIntent(this)
                 }
 
             }
         }
     }
 
+    override fun updateView(stateModel: StateModel) {
+        (stateModel as FullScreenStateModel).apply {}
+    }
 
+    override fun handleEvent(event: ViewEvent) {
+        (event as FullScreenViewEvent).apply {}
+    }
 
     override fun getParentView(): BaseView? {
         return null
     }
 
-    override fun updateView(stateModel: StateModel) {
-        (stateModel as FullScreenStateModel).apply {
-
-        }
-    }
-
-    override fun handleEvent(event: ViewEvent) {
-        (event as FullScreenViewEvent).apply {
-
-        }
-    }
-
-
     companion object {
         const val EXTRA_IMAGE = "EXTRA_IMAGE"
-
         fun start(activity: BaseActivity, image: Image) {
             val intent = Intent(activity, FullScreenActivity::class.java)
             intent.putExtra(EXTRA_IMAGE, image)

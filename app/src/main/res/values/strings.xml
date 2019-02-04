@@ -10,5 +10,6 @@
 
     <string name="str_grant_storage_permissions">Please grant storage permissions</string>
     <string name="str_permission_rationale">Please grant all permissions</string>
+    <string name="str_home">Home</string>
 
 </resources>

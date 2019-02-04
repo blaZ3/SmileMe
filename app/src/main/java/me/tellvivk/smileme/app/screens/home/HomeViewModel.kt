@@ -87,15 +87,29 @@ class HomeViewModel(
             .getImages(screenSize)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnSuccess {
+            .doOnSuccess { list->
+                var gotFromNetwork = false
                 (model as HomeStateModel).apply {
-                    updateModel(
-                        this.copy(
-                            images = it,
-                            progress = this.progress.copy(isShown = false)
+                    if (list.isNotEmpty()){
+                        for(image in list){
+                            if (!image.imgUrl.isNullOrEmpty()){
+                                gotFromNetwork = true
+                                break
+                            }
+                        }
+                        updateModel(
+                            this.copy(
+                                images = list,
+                                progress = this.progress.copy(isShown = false)
+                            )
                         )
-                    )
+                    }
+                    if (!gotFromNetwork) {
+                        sendEvent(LoadingErrorEvent(
+                            stringFetcher.getString(R.string.str_network_error)))
+                    }
                 }
+
             }.doOnError {
                 sendEvent(LoadingErrorEvent(it.message.toString()))
             }.subscribe()

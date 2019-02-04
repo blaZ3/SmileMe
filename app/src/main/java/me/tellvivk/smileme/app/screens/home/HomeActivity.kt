@@ -8,6 +8,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import checkAllPermissions
+import com.google.android.material.snackbar.Snackbar
 import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
 import com.uber.autodispose.autoDisposable
 import dispatchTakePictureIntent
@@ -25,6 +26,7 @@ import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialog
 import me.tellvivk.smileme.app.screens.home.confirmImage.ConfirmNewImageDialogInterface
 import me.tellvivk.smileme.databinding.ActivityHomeBinding
 import me.tellvivk.smileme.helpers.logger.LoggerI
+import me.tellvivk.smileme.helpers.stringFetcher.StringFetcherI
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.core.parameter.parametersOf
@@ -35,17 +37,14 @@ import java.util.*
 
 
 class HomeActivity : BaseActivity(), BaseView {
-
-    private val appLogger: LoggerI by inject()
-    private lateinit var viewModel: HomeViewModel
-    private lateinit var homeAdapter: HomeImagesAdapter
-
     private lateinit var dataBinding: ActivityHomeBinding
-
-    private val requestImageCapture = 1
-    private var currentPhotoPath: String = ""
-
+    private val stringFetcher: StringFetcherI by inject()
     private lateinit var progressDialog: ProgressDialog
+    private lateinit var homeAdapter: HomeImagesAdapter
+    private lateinit var viewModel: HomeViewModel
+    private val appLogger: LoggerI by inject()
+    private var currentPhotoPath: String = ""
+    private val requestImageCapture = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,14 +52,8 @@ class HomeActivity : BaseActivity(), BaseView {
             this,
             R.layout.activity_home
         )
-
-        progressDialog = ProgressDialog(this)
-        progressDialog.setTitle("Please wait")
-        progressDialog.setMessage("Processing...")
-        progressDialog.setCancelable(false)
-
+        initToolbar(stringFetcher.getString(R.string.str_home), toolbarHome)
         this.checkAllPermissions()
-
         initView()
     }
 
@@ -72,6 +65,11 @@ class HomeActivity : BaseActivity(), BaseView {
 
     override fun initView() {
         viewModel = get { parametersOf(windowManager) }
+
+        progressDialog = ProgressDialog(this)
+        progressDialog.setTitle("Please wait")
+        progressDialog.setMessage("Processing...")
+        progressDialog.setCancelable(false)
 
         homeAdapter = HomeImagesAdapter(
             listOf(), this, homeImagesAdapterInterface,
@@ -109,10 +107,8 @@ class HomeActivity : BaseActivity(), BaseView {
     override fun updateView(stateModel: StateModel) {
         appLogger.d("updateView", stateModel.toString())
         (stateModel as HomeStateModel).apply {
-
             val updatedItems = ArrayList<Image>()
             updatedItems.addAll(stateModel.images)
-
             val diffResult = DiffUtil.calculateDiff(
                 ImagesListDiffCallback(
                     homeAdapter.items,
@@ -121,8 +117,6 @@ class HomeActivity : BaseActivity(), BaseView {
             )
             diffResult.dispatchUpdatesTo(homeAdapter)
             homeAdapter.items = stateModel.images
-
-
             dataBinding.stateModel = this
         }
     }
@@ -135,7 +129,11 @@ class HomeActivity : BaseActivity(), BaseView {
                     viewModel.getImages()
                 }
                 is LoadingErrorEvent -> {
-                    showToast(this.msg)
+                    Snackbar.make(dataBinding.root,
+                        resources.getString(R.string.str_network_error),
+                        Snackbar.LENGTH_INDEFINITE).setAction("RETRY") {
+                        viewModel.getImages()
+                    }.show()
                 }
                 ScrollToTop -> {
                     recyclerHome.smoothScrollToPosition(0)
