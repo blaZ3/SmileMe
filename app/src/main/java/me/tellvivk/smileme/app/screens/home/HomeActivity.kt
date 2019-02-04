@@ -130,7 +130,7 @@ class HomeActivity : BaseActivity(), BaseView {
                 }
                 is LoadingErrorEvent -> {
                     Snackbar.make(dataBinding.root,
-                        resources.getString(R.string.str_network_error),
+                        stringFetcher.getString(R.string.str_network_error),
                         Snackbar.LENGTH_INDEFINITE).setAction("RETRY") {
                         viewModel.getImages()
                     }.show()
