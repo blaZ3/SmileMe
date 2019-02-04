@@ -23,10 +23,6 @@ class ConfirmNewImageDialog(context: Context,
         setContentView(R.layout.layout_confirm_image_dialog)
         setCancelable(false)
 
-//        bitmap?.let {
-//            imgConfirmImage.setImageBitmap(it)
-//        }
-
         imagePath?.let {
             imageHelper.loadFromFile(context = context,
                 file = File(imagePath), iv = imgConfirmImage)
