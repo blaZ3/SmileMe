@@ -4,16 +4,14 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import me.tellvivk.smileme.dataSources.ImageDataSourceI
-import me.tellvivk.smileme.helpers.fileHelper.FileHelperI
 import java.util.*
 
 class ImageRepository(
     private val networkDataSource: ImageDataSourceI,
-    private val localDataSource: ImageDataSourceI,
-    private val fileHelper: FileHelperI
+    private val localDataSource: ImageDataSourceI
 ) : ImageRepositoryI {
 
-    override fun getImages(screenSize: Pair<Int, Int>): Single<List<Image>> {
+    override fun getImages(): Single<List<Image>> {
 
         val localImageObservable = localDataSource.loadImages()
             .toObservable()
@@ -38,8 +36,10 @@ class ImageRepository(
                 localImageObservable.subscribeOn(Schedulers.io()),
                 networkImageObservable.subscribeOn(Schedulers.io())
             ).toList().doOnSuccess {
-                    emitter.onSuccess(it)
-                }.subscribe()
+                emitter.onSuccess(it)
+            }.doOnError {
+                emitter.onError(it)
+            }.subscribe()
         }
     }
 

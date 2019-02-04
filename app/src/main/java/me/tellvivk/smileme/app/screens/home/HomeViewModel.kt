@@ -84,7 +84,7 @@ class HomeViewModel(
         }
 
         imagesRepo
-            .getImages(screenSize)
+            .getImages()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSuccess { list->

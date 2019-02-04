@@ -71,8 +71,7 @@ class AppModule {
             single<ImageRepositoryI> {
                 ImageRepository(
                     networkDataSource = get("network"),
-                    localDataSource = get("local"), fileHelper = get()
-                )
+                    localDataSource = get("local"))
             }
 
         }
