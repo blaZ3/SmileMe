@@ -1,9 +1,12 @@
 package me.tellvivk.smileme.app.screens.home
 
+import android.Manifest
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -91,16 +94,7 @@ class HomeActivity : BaseActivity(), BaseView {
             .subscribe { handleEvent(it) }
 
         fabAddNewPic.setOnClickListener {
-            try {
-                createTempImageFile()
-                this.dispatchTakePictureIntent(
-                    requestImageCapture,
-                    File(currentPhotoPath)
-                )
-            } catch (ex: IOException) {
-                showToast(ex.message.toString())
-            }
-
+            checkPermissionAndDispatch()
         }
     }
 
@@ -130,7 +124,7 @@ class HomeActivity : BaseActivity(), BaseView {
                 }
                 is LoadingErrorEvent -> {
                     Snackbar.make(dataBinding.root,
-                        stringFetcher.getString(R.string.str_network_error),
+                        stringFetcher.getString(me.tellvivk.smileme.R.string.str_network_error),
                         Snackbar.LENGTH_INDEFINITE).setAction("RETRY") {
                         viewModel.getImages()
                     }.show()
@@ -180,6 +174,25 @@ class HomeActivity : BaseActivity(), BaseView {
             storageDir /* directory */
         ).apply {
             currentPhotoPath = absolutePath
+        }
+    }
+
+    private fun checkPermissionAndDispatch() {
+        try {
+            val permissionCheck =
+                ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (permissionCheck == PackageManager.PERMISSION_GRANTED){
+                createTempImageFile()
+                this.dispatchTakePictureIntent(
+                    requestImageCapture,
+                    File(currentPhotoPath)
+                )
+            } else{
+                showToast(stringFetcher.getString(R.string.str_grant_storage_permissions))
+            }
+        } catch (ex: IOException) {
+            showToast(ex.message.toString())
         }
     }
 
